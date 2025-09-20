@@ -1,6 +1,5 @@
 const { Telegraf } = require('telegraf');
 const axios = require('axios');
-const cheerio = require('cheerio');
 const {
     EventBridgeClient,
     EnableRuleCommand,
@@ -31,21 +30,9 @@ const disableRetrySchedule = async () => {
 
 const getLastUpdatedDate = async () => {
     try {
-        const { data } = await axios.get('https://www.hnb.net/exchange-rates');
-        const $ = cheerio.load(data);
+        const { data } = await axios.get('https://venus.hnb.lk/api/get_exchange_rate_last_update_date_contents');
 
-        let updatedDate;
-
-        // Find all <p> tags and look for one that contains "Last updated:"
-        $("p").each((_, el) => {
-            const text = $(el).text().trim();
-            const match = text.match(/Last updated:\s*(\d{4}-\d{2}-\d{2})/);
-            if (match) {
-                updatedDate = match[1]; // the date string
-            }
-        });
-
-        return updatedDate;
+        return data[0].lastUpdatedDate;
     } catch (error) {
         console.error('Error fetching last updated date:', error);
     }
@@ -53,23 +40,8 @@ const getLastUpdatedDate = async () => {
 
 const getExchangeRate = async () => {
     try {
-        const { data } = await axios.get('https://www.hnb.net/exchange-rates');
-        const $ = cheerio.load(data);
-
-        const rates = [];
-        $('table tbody tr').each((_, element) => {
-            const currencyCode = $(element).find('td').eq(1).text().trim();
-            const buyingRate = $(element).find('td').eq(2).text().trim();
-            const sellingRate = $(element).find('td').eq(3).text().trim();
-
-            rates.push({
-                currencyCode,
-                buyingRate,
-                sellingRate,
-            });
-        });
-
-        return rates;
+        const { data } = await axios.get('https://venus.hnb.lk/api/get_exchange_rates_contents_web');
+        return data
     } catch (error) {
         console.error('Error fetching exchange rate:', error);
     }
